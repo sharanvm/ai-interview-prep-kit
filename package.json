@@ -2,7 +2,11 @@
   "name": "ai-interview-prep-kit",
   "private": true,
   "version": "1.0.0",
-  "workspaces": ["apps/api", "apps/web", "packages/core"],
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/core"
+  ],
   "scripts": {
     "dev": "concurrently -k \"npm:dev:api\" \"npm:dev:web\"",
     "dev:api": "npm --workspace apps/api run dev",
@@ -15,6 +19,9 @@
     "test": "npm run build:core --silent && vitest run"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
     "concurrently": "^9.2.1",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
