@@ -1,0 +1,10 @@
+import { Router } from "express";
+import bcrypt from "bcryptjs";
+import { User } from "../models/User";
+import { requireAuth } from "../middleware/auth";
+const router=Router();
+router.post("/register",async(req,res,next)=>{try{const email=String(req.body.email||"").trim().toLowerCase(); const password=String(req.body.password||""); if(!/^\S+@\S+\.\S+$/.test(email)||password.length<8) return res.status(400).json({error:{code:"INVALID_INPUT",message:"Valid email and password of at least 8 characters required"}}); const exists=await User.findOne({email}); if(exists) return res.status(409).json({error:{code:"EMAIL_EXISTS",message:"Email already registered"}}); const user=await User.create({email,passwordHash:await bcrypt.hash(password,12)}); req.session.userId=String(user._id); res.status(201).json({user:{id:String(user._id),email:user.email}});}catch(e){next(e)}});
+router.post("/login",async(req,res,next)=>{try{const email=String(req.body.email||"").trim().toLowerCase(); const password=String(req.body.password||""); const user=await User.findOne({email}); if(!user||!(await bcrypt.compare(password,user.passwordHash))) return res.status(401).json({error:{code:"INVALID_CREDENTIALS",message:"Invalid email or password"}}); req.session.userId=String(user._id); res.json({user:{id:String(user._id),email:user.email}});}catch(e){next(e)}});
+router.post("/logout",async(req,res,next)=>{req.session.destroy(err=>err?next(err):res.json({ok:true}))});
+router.get("/me",requireAuth,async(req,res,next)=>{try{const u=await User.findById(req.userId).select("email"); if(!u)return res.status(401).json({error:{code:"UNAUTHORIZED",message:"Session expired"}}); res.json({user:{id:String(u._id),email:u.email}})}catch(e){next(e)}});
+export default router;
